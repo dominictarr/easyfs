@@ -67,7 +67,7 @@ exports['can save load and rm a file'] = function(test){
   easyfs.save(file,obj,load)
   
   function load(){
-    easyfs.load(file,obj,function(err,loaded){
+    easyfs.load(file,function(err,loaded){
     
       test.deepEqual(loaded,obj, "expected: " + obj + ", got:" + loaded);
       remove()
