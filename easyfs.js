@@ -1,5 +1,5 @@
 var fs = require('fs')
-  , inspect = require('util').inspect
+
 exports.ensureDirSync = ensureDirSync
 //ensures that a directory exists, making it if necessary.
 function ensureDirSync (path,done){
@@ -41,47 +41,4 @@ function exists(path,callback){
       callback(stat)
     }
   }
-}
-/*
-exports.ensureRm = ensureRm
-function ensureRm(){//list of paths
-  var callback
-  for(i in arguments){
-    if('function' == typeof arguments[i]){
-      callback = arguments[i]
-      delete arguments[i]
-    }
-  }
-}
-*/
-exports.save = save
-function save (file, obj,callback){
-  //JSON obj and save to file.
-  var string = JSON.stringify(obj)
-  console.log('saving: ' + file + ' = \'' + string + '\'')
-  callback = callback || function (){}
-  fs.writeFile(file, string, 'ascii', callback); 
-}
-
-exports.load = load
-function load (file, callback){
-  //load obj from file
-  fs.readFile(file, 'ascii', function(err,string){
-    if (err) {
-      return callback(err,string)
-    }
-    try{      
-      obj = JSON.parse( string )
-      console.log('loaded: ' + file + ' = \'' + string + '\' ' + inspect(obj))
-      callback(null,obj)
-    } catch (jsonErr){
-      return callback(jsonErr,string)
-    }
-  }); 
-}
-
-exports.rm = rm
-function rm (file, callback){
-  //load obj from file
-  fs.unlink(file,callback)
 }
