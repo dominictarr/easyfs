@@ -2,25 +2,65 @@ var fs = require('fs')
   , inspect = require('util').inspect
   , assert = require('assert')
   , path = require('path')
-exports.ensureDirSync = ensureDirSync
-//ensures that a directory exists, making it if necessary.
-function ensureDirSync (path,done){
+  , exec = require('child_process')
+function getArgs (args){
+  var got = {}
+    , toJoin = []
+  for(i in args){
+    if('object' == typeof args[i])
+      got.obj = args[i]
+    else if('function' == typeof args[i])
+      got.callback = args[i]
+    else
+      toJoin.push(args[i])
+  }
+  got.path = path.join.apply(null,toJoin)
+  return got
+}
+
+
+exports.mkdirSync = mkdirSync
+function mkdirSync (path,done){
   stat = existsSync(path)
   if(!stat){
-    fs.mkdirSync(path,666)
+    fs.mkdirSync(path,0755)
     return existsSync(path)
   } else {
     return stat 
   }
 }
-exports.ensureRmDirSync = ensureRmDirSync
+
+exports.mkdir = mkdir
+//ensures that a directory exists, making it if necessary.
+function mkdir (){
+  var args = getArgs(arguments)
+  , file = args.path
+  , r = args.callback
+
+  stat = exists(file,c)
+  function c(err,stats){
+    
+    if(err){
+    console.log("mkdir: " + file)
+    console.log("err: " + err)
+      fs.mkdir(file,0755  ,r)
+    } else if (stats.isDirectory()){
+      r(null,stats)
+    } else {
+      r(new Error("cannot create directory " + path + " a file already exists.")) 
+    }
+  }
+}
+
+
+/*exports.ensureRmDirSync = ensureRmDirSync
 
 function ensureRmDirSync (path,done){
   stat = existsSync(path)
   if(stat){
     fs.rmdirSync(path)
   }
-}
+}*/
 
 exports.existsSync = existsSync
 
@@ -34,34 +74,10 @@ function existsSync(path){
 
 exports.exists = exists
 
-function getArgs (args){
-  var got = {}
-    , toJoin = []
-  for(i in args){
-    if('object' == typeof args[i])
-      got.obj = args[i]
-    else if('function' == typeof args[i])
-      got.callback = args[i]
-    else
-      toJoin.push(args[i])
-  }
-  got.path = path.join(toJoin)
-  return got
-}
-
 function exists(){
   var args = getArgs(arguments)
-  , file = args.path
-  , callback = args.callback
 
-  return fs.lstat(file,makeNull)
-  function makeNull (err,stat){
-    if(err) {
-      callback(false)
-    } else {
-      callback(stat)
-    }
-  }
+  return fs.lstat(args.path,args.callback)
 }
 /*
 exports.ensureRm = ensureRm
@@ -105,6 +121,7 @@ function save (){
     , file = args.path
     , obj = args.obj
     ,callback = args.callback
+    console.log("SAVE:" + inspect(file))
   //JSON obj and save to file.
   var string = JSON.stringify(obj)
 //  console.log('saving: ' + file + ' = \'' + string + '\'')
@@ -125,7 +142,6 @@ function load (file, callback){
     }
     try{      
       obj = JSON.parse( string )
-//      console.log('loaded: ' + file + ' = \'' + string + '\' ' + inspect(obj))
       callback(null,obj)
     } catch (jsonErr){
       return callback(jsonErr,string)
@@ -133,8 +149,11 @@ function load (file, callback){
   }); 
 }
 
+
+
+
 exports.rm = rm //typesafe(rm,['string','function'])
-function rm (file, callback){
+function rm (){
   var args = getArgs(arguments)
     , file = args.path
     , callback = args.callback
@@ -151,4 +170,29 @@ function rm (file, callback){
     }
   }
 }
+
+exports.rmSync = rmSync //typesafe(rm,['string','function'])
+function rmSync (file){
+  var args = getArgs(arguments)
+    , file = args.path
+    , callback = args.callback
+
+  //load obj from file
+  stat = fs.statSync(file)
+  
+  if(stat.isDirectory()){
+    fs.rmdirSync(file)
+  } else {
+    fs.unlinkSync(file)
+  }
+}
+
 exports.join = path.join
+
+exports.ls = function (){
+  var args = getArgs(arguments)
+    , file = args.path
+    , callback = args.callback
+
+  fs.readdir(file,callback)
+}
