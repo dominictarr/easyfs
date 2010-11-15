@@ -207,7 +207,7 @@ exports['easy.ls lists a directory'] = function (test){
   }
 }
 exports['easyfs.ls lists directory contents'] = function (test){
-  var dir = easyfs.join(process.ENV.PWD, 'examples')
+  var dir = easyfs.join(process.ENV.PWD, 'random_examples')
     , files = ["a.json","b.json","c.json"]
     , i = 0
   easyfs.mkdir(dir,c)
