@@ -1,6 +1,7 @@
 var fs = require('fs')
   , inspect = require('util').inspect
   , assert = require('assert')
+  , path = require('path')
 exports.ensureDirSync = ensureDirSync
 //ensures that a directory exists, making it if necessary.
 function ensureDirSync (path,done){
@@ -33,8 +34,27 @@ function existsSync(path){
 
 exports.exists = exists
 
-function exists(path,callback){
-  return fs.lstat(path,makeNull)
+function getArgs (args){
+  var got = {}
+    , toJoin = []
+  for(i in args){
+    if('object' == typeof args[i])
+      got.obj = args[i]
+    else if('function' == typeof args[i])
+      got.callback = args[i]
+    else
+      toJoin.push(args[i])
+  }
+  got.path = path.join(toJoin)
+  return got
+}
+
+function exists(){
+  var args = getArgs(arguments)
+  , file = args.path
+  , callback = args.callback
+
+  return fs.lstat(file,makeNull)
   function makeNull (err,stat){
     if(err) {
       callback(false)
@@ -79,17 +99,25 @@ function typesafe(func,types,self){
 }
 
 
-exports.save = typesafe(save,['string','object','function'])
-function save (file, obj,callback){
+exports.save = save //typesafe(save,['string','object','function'])
+function save (){
+  var args = getArgs(arguments)
+    , file = args.path
+    , obj = args.obj
+    ,callback = args.callback
   //JSON obj and save to file.
   var string = JSON.stringify(obj)
-  console.log('saving: ' + file + ' = \'' + string + '\'')
+//  console.log('saving: ' + file + ' = \'' + string + '\'')
   callback = callback || function (){}
-  fs.writeFile(file, string, 'ascii', callback); 
+  fs.writeFile(file, string, 'ascii', callback);
 }
 
-exports.load = typesafe(load,['string','function'])
+exports.load = load //typesafe(load,['string','function'])
 function load (file, callback){
+  var args = getArgs(arguments)
+    , file = args.path
+    , callback = args.callback
+
   //load obj from file
   fs.readFile(file, 'ascii', function(err,string){
     if (err) {
@@ -97,7 +125,7 @@ function load (file, callback){
     }
     try{      
       obj = JSON.parse( string )
-      console.log('loaded: ' + file + ' = \'' + string + '\' ' + inspect(obj))
+//      console.log('loaded: ' + file + ' = \'' + string + '\' ' + inspect(obj))
       callback(null,obj)
     } catch (jsonErr){
       return callback(jsonErr,string)
@@ -105,8 +133,22 @@ function load (file, callback){
   }); 
 }
 
-exports.rm = typesafe(rm,['string','function'])
+exports.rm = rm //typesafe(rm,['string','function'])
 function rm (file, callback){
+  var args = getArgs(arguments)
+    , file = args.path
+    , callback = args.callback
+
   //load obj from file
-  fs.unlink(file,callback)
+  fs.lstat(file,remove)
+  
+  function remove(err,stat){
+    assert.ifError(err)
+    if(stat.isDirectory()){
+      fs.rmdir(file,callback)
+    } else {
+      fs.unlink(file,callback)
+    }
+  }
 }
+exports.join = path.join
