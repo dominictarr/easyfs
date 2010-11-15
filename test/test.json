@@ -1,0 +1,13 @@
+{ "name" :"easyfs"
+, "author": "dominictarr"
+, "tests": 
+    { "easyfs": 
+      { "test": "easyfs/test/easyfs.asynct"
+      , "target": "easyfs"
+      }
+    , "easyfs.rm-rf":
+      { "test": "easyfs/test/easyfs.rm-rf.asynct"
+      , "target": "easyfs2"
+      }
+    }
+}

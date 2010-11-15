@@ -58,17 +58,14 @@ exports['can check file existsSync'] = function(test){
 
 exports['can check file exists'] = function(test){
   name = rDir()
-//  test.equal(exists(name),false, "expected dir:" + name + "to not exist")
   easyfs.exists(makePath(name),notFound)
   
   function notFound(err,stat){
-    console.log(stat)
     test.ok(err,"expected dir:" + name + " to not exist")
     easyfs.exists(process.ENV.HOME  ,found)
   }
 
   function found(err,stat){
-    console.log(stat)
     test.equal(err,null,"expected dir:" + process.ENV.HOME + " to exist")
     test.finish()
   }
@@ -220,7 +217,6 @@ exports['easyfs.ls lists directory contents'] = function (test){
       if(i < files.length){
         var f = files[i++]
           , cur = randFile()
-        console.log("save : " + f)
         easyfs.save(dir,f,cur,c)
 
         function c (err){
@@ -228,7 +224,6 @@ exports['easyfs.ls lists directory contents'] = function (test){
           easyfs.load(dir,f,randFile(),c)
 
           function c (err,obj){
-            console.log("loaded : " + f)
             test.ifError(err)
             test.deepEqual(obj,cur)
     
@@ -241,11 +236,8 @@ exports['easyfs.ls lists directory contents'] = function (test){
     }
     
     function n (){
-      console.log("LS " + dir)
       easyfs.ls(dir,c)
       function c (err,contents){
-        console.log("LS " + dir)
-        console.log("err " + err)
         test.ifError(err)
         test.deepEqual(contents.sort(),files.sort())
         easyfs.rm(dir,test.finish)        
@@ -253,4 +245,28 @@ exports['easyfs.ls lists directory contents'] = function (test){
     }
   }
 }
+
+exports['can get and extensions of a file, and the name without ext'] = function(test){
+  var files = 
+      [ "README.markdown"
+      , 'index.js'
+      , 'extensions.node'
+      , 'noextension'
+      , 'ext.ens.ions.node'
+      ]
+      
+  files.forEach(function(e){
+    var parts = e.split('.')
+      , _ext = parts.length > 1 ? '.' + parts.pop() : ''
+      , _noExt = parts.join('.')
+      ,  ext = easyfs.ext(e)
+      ,  noExt = easyfs.noExt(e)
+          
+    test.equal(ext, _ext)
+    test.equal(noExt,_noExt)
+  })
+  
+  test.finish()
+}
+
 

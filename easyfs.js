@@ -41,8 +41,6 @@ function mkdir (){
   function c(err,stats){
     
     if(err){
-    console.log("mkdir: " + file)
-    console.log("err: " + err)
       fs.mkdir(file,0755  ,r)
     } else if (stats.isDirectory()){
       r(null,stats)
@@ -51,16 +49,6 @@ function mkdir (){
     }
   }
 }
-
-
-/*exports.ensureRmDirSync = ensureRmDirSync
-
-function ensureRmDirSync (path,done){
-  stat = existsSync(path)
-  if(stat){
-    fs.rmdirSync(path)
-  }
-}*/
 
 exports.existsSync = existsSync
 
@@ -79,18 +67,6 @@ function exists(){
 
   return fs.lstat(args.path,args.callback)
 }
-/*
-exports.ensureRm = ensureRm
-function ensureRm(){//list of paths
-  var callback
-  for(i in arguments){
-    if('function' == typeof arguments[i]){
-      callback = arguments[i]
-      delete arguments[i]
-    }
-  }
-}
-*/
 
 /*
   good error messages in the right place make debugging easy
@@ -121,7 +97,6 @@ function save (){
     , file = args.path
     , obj = args.obj
     ,callback = args.callback
-    console.log("SAVE:" + inspect(file))
   //JSON obj and save to file.
   var string = JSON.stringify(obj)
 //  console.log('saving: ' + file + ' = \'' + string + '\'')
@@ -196,3 +171,18 @@ exports.ls = function (){
 
   fs.readdir(file,callback)
 }
+
+exports.lsSync = function (){
+  var args = getArgs(arguments)
+    , file = args.path
+
+  return fs.readdirSync(file)
+}
+
+exports.ext = path.extname 
+exports.noExt = function (file){
+  var parts = /(.+)\.\w+$/.exec(file)
+  return parts ? parts [1] : file
+}
+
+
