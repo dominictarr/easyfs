@@ -185,4 +185,10 @@ exports.noExt = function (file){
   return parts ? parts [1] : file
 }
 
+exports.dir = path.dirname/*function (filename){
+  path.dirname(filename)
+}*/
 
+exports.file = function (filename){
+  return filename.replace(path.dirname(filename) + '/','')
+}

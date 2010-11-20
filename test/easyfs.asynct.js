@@ -269,4 +269,23 @@ exports['can get and extensions of a file, and the name without ext'] = function
   test.finish()
 }
 
-
+exports ['can get file name - path'] = function (test){
+  var files =
+      [ ['/home/dominic/.hello','/home/dominic','.hello']
+      , ['./index.js','.','index.js']
+      , ['../extensions.node','..','extensions.node']
+      , ['/home/dominic/noextension','/home/dominic','noextension']
+      , ['/home/dominic/whatever/ext.ens.ions.node','/home/dominic/whatever','ext.ens.ions.node']
+      ]
+ 
+  files.forEach(function(parts){
+    var whole = parts[0]
+      , dir = parts[1]    
+      , file = parts[2]    
+      
+    test.equal(easyfs.dir(whole), dir)
+    test.equal(easyfs.file(whole), file)
+ })
+  
+     test.finish() 
+}
