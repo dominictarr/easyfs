@@ -5,16 +5,17 @@ var fs = require ('fs')
   , path = require ('path')
   , easyfs = require ('easyfs')
   , inspect = require('util').inspect
+
   function random(n){
     n = n || 10000
     return Math.round(Math.random() * n)
   }
   function rDir(name){
-    return path.join(process.ENV.PWD,"random_dir_" + random())
+    return path.join('/tmp',"random_dir_" + random())
   }
 
   function makePath(name){
-    return path.join(process.ENV.PWD,name)
+    return path.join('/tmp',name)
   }
   function exists(name){
     try{
@@ -24,7 +25,7 @@ var fs = require ('fs')
     }
   }
 
-exports['can check file existsSync'] = function(test){
+exports['can check file existsSync 1'] = function(test){
   name =  rDir()
   test.equal(exists(name),false, "expected dir:" + name + "to not exist")
   test.equal(easyfs.existsSync(makePath(name)),false,"expected dir:" + name + " to not exist")
@@ -39,8 +40,8 @@ exports['can check file existsSync'] = function(test){
   easyfs.exists(name,c)
   function c(err,stat){
     test.ok(err instanceof Error, "expected dir:" + name + "to not exist")
-
     easyfs.exists(process.ENV.PWD,c)
+    
     function c(err,stat1){    
       test.equal(err,null, "expected dir:" + process.ENV.PWD + "to exist")
       test.ok(stat1)
@@ -137,21 +138,24 @@ exports['mkdir returns normally if a directory already exists'] = function (test
 function randFile(){
   return {random1: random(), random2: random()}
 }
+
 function testSaveLoadRm(test,file_args,cb) {
   var obj = {random1: random(), random2: random()}
 
-  easyfs.save.apply(null,file_args.concat([obj,c]))
+  easyfs.save(file_args,obj,c)
+
   function c(){
 
-    easyfs.load.apply(null,file_args.concat([c]))
+    easyfs.load(file_args,c)
     function c(err,loaded){
     
-      test.deepEqual(loaded,obj, "expected: " + inspect(obj) + ", got:" + inspect(loaded) + " when loading " + path.join.apply(null,file_args));
-      easyfs.rm.apply(null,file_args.concat([c]))
+      test.deepEqual(loaded,obj, "expected: " + inspect(obj) + ", got:" + inspect(loaded) + " when loading " + file_args);
+      easyfs.rm(file_args,c)
       function c(err){
         test.ifError(err)
 
-        easyfs.exists.apply(null,file_args.concat([c]))
+        easyfs.exists(file_args,c)
+
         function c(err,stat){
           test.ok(err instanceof Error,"expected file " + path.join(file_args) 
             + "to be deleted, but got " + inspect(err))
@@ -163,19 +167,11 @@ function testSaveLoadRm(test,file_args,cb) {
 }
 
 exports['can save load and rm a file'] = function(test){
-  testSaveLoadRm(test,[makePath('random_file_' + random())],test.finish)
+  testSaveLoadRm(test,makePath('random_file_' + random()),test.finish)
 }
 
-exports['arguments save load rm automaticially joins'] = function (test){
+exports['arguments save load rm joins if file arg is array'] = function (test){
   testSaveLoadRm(test,[process.ENV.PWD,'random_file.json'],test.finish)
-/*  function c(){
-    testSaveLoadRm(test,[process.ENV.PWD,'a','b','c.json'],c)
-    function c(){
-      testSaveLoadRm(test,[process.ENV.PWD,'a','b','..','c.json'],c)
-      
-      test.finish()
-    }
-  }*/
 }
 
 exports['can rm a directory'] = function (test){
@@ -207,6 +203,7 @@ exports['easyfs.ls lists directory contents'] = function (test){
   var dir = easyfs.join(process.ENV.PWD, 'random_examples')
     , files = ["a.json","b.json","c.json"]
     , i = 0
+
   easyfs.mkdir(dir,c)
   function c(err){
   
@@ -217,11 +214,11 @@ exports['easyfs.ls lists directory contents'] = function (test){
       if(i < files.length){
         var f = files[i++]
           , cur = randFile()
-        easyfs.save(dir,f,cur,c)
+        easyfs.save([dir,f],cur,c)
 
         function c (err){
           test.ifError(err)
-          easyfs.load(dir,f,randFile(),c)
+          easyfs.load([dir,f],c) //************
 
           function c (err,obj){
             test.ifError(err)
@@ -289,3 +286,5 @@ exports ['can get file name - path'] = function (test){
   
      test.finish() 
 }
+
+
