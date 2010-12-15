@@ -182,8 +182,6 @@ exports.ls = function (){
     , file = args.path
     , callback = args.callback
 
-  console.log('ls',file)
-
   fs.readdir(file,callback)
 }
 
@@ -252,22 +250,31 @@ curry.right = function (){
 
 exports.Temp = Temp
 
-function Temp(){
+function Temp(name){
 //  if(!(this instanceof Temp)) return new Temp()
 
-  var name = ("temp_" + Math.round(Math.random() * 1000000))
+  var name = ((name || "temp_") + Math.round(Math.random() * 1000000))
     , dir = '/tmp'
     , _path = path.join(dir,name)
     
     return new File(_path)
 }
 
+exports.File = File
 
-function File(_path){
+function File(_path,ready){
   if(!(this instanceof File)) 
     return new File(_path)
 
   var self = this
+
+  /*if(ready){
+  
+  } else {
+    self.stat = fs.statSync(_path)
+    self.exists = true
+    self.isDir = fs.isDirectory
+  }*/
 
   self.save = curry(save, _path)
   self.load = curry(load, _path)
@@ -323,7 +330,7 @@ function File(_path){
   //drain queue
   function write(){
     if(self.isOpen){
-        console.log('opened!')
+        console.log('opened!' + self.path)
       if(toWrite.length > 0) {
         var cbs = []
         var chunk = toWrite.map(function (v){
@@ -355,8 +362,42 @@ function File(_path){
 
   self.read = function(r){
     fs.readFile(_path, self.encoding, r)}
-  
-/*  self.append = 
-  self.read = 
-*/
-}
+ 
+ /*
+  fs is like, _so_ low-level
+ 
+ */
+ 
+  self.readLines = function (line,end){
+    var stream = 
+      fs.createReadStream(self.path,
+        { flags: 'r'
+        , encoding:self.encoding
+        , mode: 0666
+        , bufferSize: 256 /*4 * 1024*/ }  )
+    
+      stream.on('data',chunk)
+      var cur = []
+      
+      function chunk (data){
+        data.split('').forEach( function(ch){
+          cur.push(ch)
+          if(ch == '\n')
+            sendLine()
+            } ) }
+
+      function sendLine(){
+        line(cur.join(''))
+        cur = []
+        }
+
+      stream.on('close',function (){
+        console.log("close!" + self.path)
+        if(cur.length)
+          sendLine()
+        if(end) { end() } else { line(null) }
+        } )
+
+    return stream
+    } }//end of File ()
+
